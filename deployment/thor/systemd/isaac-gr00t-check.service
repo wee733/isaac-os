@@ -1,0 +1,13 @@
+[Unit]
+Description=Official GR00T N1.7 and WBC offline model check (500 commands)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/thor/lbz_ws/g1_ws/isaac_os_ws/src/isaac-os
+EnvironmentFile=/home/thor/lbz_ws/g1_ws/isaac_os_ws/src/isaac-os/deployment/thor/runtime.env
+ExecStart=/home/thor/lbz_ws/g1_ws/isaac_os_ws/src/isaac-os/isaac_os run gr00t_n1_7_wbc_g1 mock --img=isaac_os_build-gr00t_n1_7_wbc_g1:thor-a4ab23f --no-docker-build --no-local-build -- --application-config-path=deployment/thor/control.yaml --message-count=500
+KillSignal=SIGINT
+SuccessExitStatus=130
+TimeoutStartSec=infinity
+TimeoutStopSec=30
+Restart=no

@@ -1,4 +1,4 @@
-# Thor 上的官方 GR00T N1.7 + G1
+# Isaac OS：Thor 部署
 
 本目录保存 Thor 的部署配置。控制程序基于 Isaac OS v0.11.0 的 C++ 实现，
 上游提交为 `a4ab23f83266201fd117a4cf4205fb28c936b257`。
@@ -9,7 +9,17 @@
 `90caf594a5f1ce32e114103d6debf3ffabdb802d`，搭配 WBC-AGILE v1.2。
 这是苹果放盘任务；此导出没有运行时文字指令入口，尚未验证拿水瓶。
 
-## 日常启动
+## 官方应用入口
+
+这是 Isaac OS 的独立部署。工作区入口见
+`/home/thor/lbz_ws/g1_ws/isaac_os_ws/README.md`，其中记录固定镜像、缓存挂载与
+直接运行官方 mock 的命令。真实应用使用官方 `./isaac_os run gr00t_n1_7_wbc_g1 real`。
+它和独立 `Isaac-GR00T` 推理、SONIC 控制分别维护与验收。
+
+下面的 systemd 配置是此前添加的本地进程管理，不是官方要求，也不是 ROS service。
+保留这些配置是为了追溯已有相机转发和运行记录。
+
+## 旧 systemd 入口（历史兼容）
 
 Thor 已安装以下入口。G1 充电、开机并接回原来的网线后运行：
 

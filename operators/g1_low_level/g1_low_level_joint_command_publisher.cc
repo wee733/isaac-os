@@ -6,6 +6,7 @@
 #include "operators/g1_low_level/g1_low_level_joint_command_publisher.h"
 
 #include <chrono>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -13,6 +14,8 @@
 
 #include <holoscan/logger/logger.hpp>
 #include <unitree/robot/b2/motion_switcher/motion_switcher_client.hpp>
+
+#include "operators/g1_low_level/dex3_motor_mode.h"
 
 namespace isaac::os::ops {
 namespace {
@@ -45,9 +48,9 @@ std::uint32_t crc32_core(const std::uint32_t* data, std::uint32_t length) {
 
 /// Copies one motor's worth of the command into a LowCmd or HandCmd motor slot.
 template <typename MotorCmd>
-void fill_motor_cmd(MotorCmd& motor_cmd, const isaac::JointCommandCpuT& command,
-                    std::size_t index) {
-  motor_cmd.mode() = 1;  // 1 enables the motor, 0 disables it.
+void fill_motor_cmd(MotorCmd& motor_cmd, const isaac::JointCommandCpuT& command, std::size_t index,
+                    std::uint8_t mode) {
+  motor_cmd.mode() = mode;
   motor_cmd.q() = command.position[index];
   motor_cmd.dq() = command.velocity[index];
   motor_cmd.tau() = command.effort[index];
@@ -135,7 +138,7 @@ holoscan::expected<void, holoscan::Error> G1JointCommandPublisherOp::compute(
   low_cmd.mode_pr() = 0;
   low_cmd.mode_machine() = mode_machine_->get();
   for (std::size_t index = 0; index < kBodyMotors; ++index) {
-    fill_motor_cmd(low_cmd.motor_cmd().at(index), joint_command, index);
+    fill_motor_cmd(low_cmd.motor_cmd().at(index), joint_command, index, 1U);
   }
   low_cmd.crc() =
       crc32_core(reinterpret_cast<const std::uint32_t*>(&low_cmd), (sizeof(low_cmd) >> 2U) - 1U);
@@ -147,9 +150,10 @@ holoscan::expected<void, holoscan::Error> G1JointCommandPublisherOp::compute(
     left_hand_cmd.motor_cmd().resize(kHandMotors);
     right_hand_cmd.motor_cmd().resize(kHandMotors);
     for (std::size_t index = 0; index < kHandMotors; ++index) {
-      fill_motor_cmd(left_hand_cmd.motor_cmd().at(index), joint_command, kBodyMotors + index);
+      const auto mode = dex3_motor_mode(static_cast<std::uint8_t>(index));
+      fill_motor_cmd(left_hand_cmd.motor_cmd().at(index), joint_command, kBodyMotors + index, mode);
       fill_motor_cmd(right_hand_cmd.motor_cmd().at(index), joint_command,
-                     kBodyMotors + kHandMotors + index);
+                     kBodyMotors + kHandMotors + index, mode);
     }
     left_hand_publisher_->Write(left_hand_cmd);
     right_hand_publisher_->Write(right_hand_cmd);
